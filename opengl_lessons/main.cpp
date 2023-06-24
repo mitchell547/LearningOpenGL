@@ -3,6 +3,9 @@
 #include <GLFW/glfw3.h>
 
 #include <iostream>
+//#include <filesystem>
+
+#include "ShaderHelpers.h"
 
 const char *vertexShaderSource = 
     "#version 330 core\n"
@@ -97,7 +100,9 @@ GLuint makeShader(const GLchar* srcString, GLenum shaderType, GLsizei stringNum 
     return shader;
 }
 
-int main() {
+int main() {    
+    //std::cout << std::experimental::filesystem::current_path() << std::endl;
+
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -166,6 +171,8 @@ int main() {
     glDeleteShader(fragmentUniShader);
     glDeleteShader(fragmentColorShader);
 
+    ShaderProgram myShaderProgram("..\\Shaders\\basicVertexShader.vert", "..\\Shaders\\basicFragmentShader.frag");
+
     //
 
     /*float vertices[] = {
@@ -231,7 +238,8 @@ int main() {
     //
 
     //glUseProgram(shaderProgram);
-    glUseProgram(shaderColorProgram);
+    //glUseProgram(shaderColorProgram);
+    glUseProgram(myShaderProgram.getID());
     glBindVertexArray(VAO);
     
 
