@@ -81,6 +81,11 @@ public:
         _checkProgram(_programID);
     }
 
+    ~ShaderProgram()
+    {
+        glDeleteProgram(_programID);
+    }
+
     GLuint getID() { return _programID; }
 
 private:
