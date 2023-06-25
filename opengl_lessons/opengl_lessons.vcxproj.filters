@@ -37,5 +37,14 @@
     <None Include="..\Shaders\basicVertexShader.vert">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="..\Shaders\vertexColorShader.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\Shaders\uniformColorShader.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\Shaders\customColorShader.frag">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>
