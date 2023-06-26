@@ -137,6 +137,8 @@
     <None Include="..\Shaders\basicFragmentShader.frag" />
     <None Include="..\Shaders\basicVertexShader.vert" />
     <None Include="..\Shaders\customColorShader.frag" />
+    <None Include="..\Shaders\textureShader.frag" />
+    <None Include="..\Shaders\textureShader.vert" />
     <None Include="..\Shaders\uniformColorShader.frag" />
     <None Include="..\Shaders\vertexColorShader.vert" />
   </ItemGroup>
