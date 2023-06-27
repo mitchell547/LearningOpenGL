@@ -4,6 +4,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
+#include <assert.h>
 #include <iostream>
 //#include <filesystem>
 
@@ -16,6 +17,43 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
 void processInput(GLFWwindow *window) {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
+}
+
+bool initTexture(const std::string& path, GLuint* texture)
+{
+    //GLuint texture;
+    glGenTextures(1, texture);
+
+    glBindTexture(GL_TEXTURE_2D, *texture);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    int width, height, nrChannels;
+    unsigned char *data = stbi_load(path.c_str(), &width, &height, &nrChannels, 0);
+
+    if (nrChannels != 3 && nrChannels != 4)
+    {
+        std::cout << "Unknown texture format" << std::endl;
+        return false;
+    }
+
+    if (data)
+    {
+        assert(nrChannels == 3 || nrChannels == 4);
+        unsigned int img_fmt = nrChannels == 3 ? GL_RGB : GL_RGBA;   // this is not completely right...
+        glTexImage2D(GL_TEXTURE_2D, 0, img_fmt, width, height, 0, img_fmt, GL_UNSIGNED_BYTE, data);
+        glGenerateMipmap(GL_TEXTURE_2D);
+    }
+    else
+    {
+        std::cout << "Failed to load texture" << std::endl;
+        return false;
+    }
+    stbi_image_free(data);
+    return true;
 }
 
 const std::string SHADERS_ROOT = "..\\Shaders";
@@ -133,31 +171,17 @@ int main() {
 
     //
 
-    unsigned int texture;
-    glGenTextures(1, &texture);
+    stbi_set_flip_vertically_on_load(true);
 
-    glBindTexture(GL_TEXTURE_2D, texture);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    
-    int width, height, nrChannels;
-    unsigned char *data = stbi_load((TEXTURES_ROOT + "\\wall.jpg").c_str(), &width, &height, &nrChannels, 0);
-
-    if (data)
-    {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-        glGenerateMipmap(GL_TEXTURE_2D);
-    }
-    else
-    {
-        std::cout << "Failed to load texture" << std::endl;
+    bool res;
+    unsigned int texture1, texture2;
+    res = initTexture(TEXTURES_ROOT + "\\wall.jpg", &texture1);
+    if (!res)
         return -1;
-    }
 
-    stbi_image_free(data);
+    res = initTexture(TEXTURES_ROOT + "\\awesomeface.png", &texture2);
+    if (!res)
+        return -1;
 
     //
 
@@ -166,7 +190,16 @@ int main() {
     //glUseProgram(colorShaderProgram.getID());
     glUseProgram(textureShaderProgram.getID());
     glBindVertexArray(VAO);
-    glBindTexture(GL_TEXTURE_2D, texture);
+    //glBindTexture(GL_TEXTURE_2D, texture1);
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, texture1);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, texture2);
+
+    glUniform1i(glGetUniformLocation(textureShaderProgram.getID(), "ourTexture"), 0);
+    glUniform1i(glGetUniformLocation(textureShaderProgram.getID(), "ourTexture2"), 1);
+
     //
 
     glViewport(0, 0, 800, 600);

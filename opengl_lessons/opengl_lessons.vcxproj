@@ -131,6 +131,7 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\Includes\stb_image.h" />
     <ClInclude Include="ShaderHelpers.h" />
   </ItemGroup>
   <ItemGroup>
