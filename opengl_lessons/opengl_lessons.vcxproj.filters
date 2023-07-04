@@ -55,5 +55,8 @@
     <None Include="..\Shaders\textureShader.frag">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="..\Shaders\transformShader.vert">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

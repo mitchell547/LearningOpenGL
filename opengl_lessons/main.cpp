@@ -1,6 +1,9 @@
 
 #include <glad/glad.h> 
 #include <GLFW/glfw3.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
@@ -43,7 +46,7 @@ bool initTexture(const std::string& path, GLuint* texture)
     if (data)
     {
         assert(nrChannels == 3 || nrChannels == 4);
-        unsigned int img_fmt = nrChannels == 3 ? GL_RGB : GL_RGBA;   // this is not completely right...
+        unsigned int img_fmt = nrChannels == 3 ? GL_RGB : GL_RGBA;   // this is not quite right...
         glTexImage2D(GL_TEXTURE_2D, 0, img_fmt, width, height, 0, img_fmt, GL_UNSIGNED_BYTE, data);
         glGenerateMipmap(GL_TEXTURE_2D);
     }
@@ -88,6 +91,7 @@ int main() {
     ShaderProgram myShaderProgram(SHADERS_ROOT + "\\basicVertexShader.vert", SHADERS_ROOT + "\\basicFragmentShader.frag");
     ShaderProgram colorShaderProgram(SHADERS_ROOT + "\\vertexColorShader.vert", SHADERS_ROOT + "\\customColorShader.frag");
     ShaderProgram textureShaderProgram(SHADERS_ROOT + "\\textureShader.vert", SHADERS_ROOT + "\\textureShader.frag");
+    ShaderProgram transformShaderProgram(SHADERS_ROOT + "\\transformShader.vert", SHADERS_ROOT + "\\textureShader.frag");
 
     //
 
@@ -188,7 +192,9 @@ int main() {
     //glUseProgram(uniformShaderProgram.getID());
     //glUseProgram(myShaderProgram.getID());
     //glUseProgram(colorShaderProgram.getID());
-    glUseProgram(textureShaderProgram.getID());
+    //glUseProgram(textureShaderProgram.getID());
+    glUseProgram(transformShaderProgram.getID());
+
     glBindVertexArray(VAO);
     //glBindTexture(GL_TEXTURE_2D, texture1);
 
@@ -209,6 +215,14 @@ int main() {
     /*GLuint shaders[3] = { uniformShaderProgram.getID() , myShaderProgram.getID() , colorShaderProgram.getID() };
     int frameTimer = 0;
     int curShader = 0;*/
+
+    glm::mat4 trans = glm::mat4(1.0f);    
+    //trans = glm::mat4({ -1.f, 0.f, 0.f, 0.f, 0.f, -1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f });
+    //trans = glm::translate(trans, { 0.2, 0.2, 0.0 });
+    //trans = glm::rotate(trans, glm::radians(90.0f), glm::vec3(0.0, 0.0, 1.0));
+    //trans = glm::scale(trans, glm::vec3(0.5, 0.5, 0.5));
+    unsigned int transformLoc = glGetUniformLocation(transformShaderProgram.getID(), "transform");
+    glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
     
     while (!glfwWindowShouldClose(window))
     {
