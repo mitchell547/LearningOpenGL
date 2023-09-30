@@ -9,8 +9,6 @@ uniform mat4 transform;
 
 void main()
 {	
-	//vec4 t = {0.1f, 0.1f, 0.1f, 0.f};
-	//t *= transform;
     gl_Position = transform * vec4(aPos, 1.0f);	
     TexCoord = aTexCoord;
 } 

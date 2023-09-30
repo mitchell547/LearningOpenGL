@@ -9,9 +9,11 @@
 
 #include <assert.h>
 #include <iostream>
+#include <vector>
 //#include <filesystem>
 
 #include "ShaderHelpers.h"
+#include "MeshClasses.h"
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
     glViewport(0, 0, width, height);
@@ -128,8 +130,22 @@ int main() {
         0, 1, 3,   // first triangle
         1, 2, 3    // second triangle
     };
+
+    std::vector<float> quadVtx = {
+        // positions          // colors           // texture coords
+         0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f,   // top right
+         0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,   // bottom right
+        -0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,   // bottom left
+        -0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f    // top left 
+    };
+
+    std::vector<unsigned int> quadIdx = {
+        0, 1, 3,   // first triangle
+        1, 2, 3    // second triangle
+    };
     
     //
+    BaseMesh mesh(quadVtx, { GL_FLOAT, GL_FLOAT, GL_FLOAT }, { 3, 3, 2 }, quadIdx);
 
     unsigned int VAO;
     glGenVertexArrays(1, &VAO);
@@ -195,7 +211,8 @@ int main() {
     //glUseProgram(textureShaderProgram.getID());
     glUseProgram(transformShaderProgram.getID());
 
-    glBindVertexArray(VAO);
+    //glBindVertexArray(VAO);
+    glBindVertexArray(mesh.GetVAO());
     //glBindTexture(GL_TEXTURE_2D, texture1);
 
     glActiveTexture(GL_TEXTURE0);
