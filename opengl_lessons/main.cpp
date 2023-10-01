@@ -238,9 +238,22 @@ int main() {
     trans = glm::translate(trans, { 0.2, 0.2, 0.0 });
     trans = glm::rotate(trans, glm::radians(90.0f), glm::vec3(0.0, 0.0, 1.0));
     trans = glm::scale(trans, glm::vec3(0.5, 0.5, 0.5));
+
+    glm::mat4 model = glm::mat4(1.0f);
+    glm::mat4 view = glm::mat4(1.0f);
+    glm::mat4 projection = glm::mat4(1.0f);
+    //model = glm::rotate(model, glm::radians(89.0f), glm::vec3(1.0f, 0.0f, 0.0f));  
+    model = glm::translate(model, glm::vec3(0.0f, 0.0f, -0.25f ));
+    view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));    
+    view = glm::rotate(view, glm::radians(-35.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
+
+    trans = projection * view * model;
+
     unsigned int transformLoc = glGetUniformLocation(transformShaderProgram.getID(), "transform");
-    glUniformMatrix4fv(glGetUniformLocation(transformShaderProgram.getID(), "transform"), 1, GL_FALSE, glm::value_ptr(trans));
+    glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
     
+    float prevTime = glfwGetTime();
     while (!glfwWindowShouldClose(window))
     {
         processInput(window);
@@ -260,6 +273,34 @@ int main() {
             curShader = (curShader + 1) % (sizeof(shaders) / sizeof(shaders[0]));
         }
         glUseProgram(shaders[curShader]);*/
+        float param = timeValue - (round(timeValue / glm::pi<float>()) * glm::pi<float>());
+        float deltaTime = timeValue - prevTime;
+        prevTime = timeValue;
+
+        // Similar effect
+        {
+            // absolute position, translation first, then rotation            
+            //model = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.5f*sin(2 * timeValue), 0.5f*cos(2 * timeValue)));
+            //model = glm::rotate(model, -2 * timeValue, glm::vec3(1.0f, 0.0f, 0.0f));
+        }
+        {
+            // abs pos, rotation then translation
+            //model = glm::rotate(glm::mat4(1.0f), -2 * timeValue, glm::vec3(1.0f, 0.0f, 0.0f));
+            //model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.5f));
+        }
+        {
+            // relative position
+            //model = glm::rotate(model, -2 * deltaTime, glm::vec3(1.0f, 0.0f, 0.0f));
+            //model = glm::translate(model, glm::vec3(0.0f, 0.0005f, 0.00f));
+        }
+        {
+            // relative position
+            model = glm::translate(model, glm::vec3(0.0f, 0.0005f*cos(2 * deltaTime), -0.0005f*sin(2 * deltaTime)));
+            model = glm::rotate(model, -2 * deltaTime, glm::vec3(1.0f, 0.0f, 0.0f));
+        }
+        
+        trans = projection * view * model;
+        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
 
         //glDrawArrays(GL_TRIANGLES, 0, 3);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
