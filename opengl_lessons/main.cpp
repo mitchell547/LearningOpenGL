@@ -61,6 +61,69 @@ bool initTexture(const std::string& path, GLuint* texture)
     return true;
 }
 
+unsigned int grayNum(unsigned int n) 
+{
+    return n ^ (n >> 1);
+}
+
+void generateCube(std::vector<float>& _mesh, std::vector<float>& _uvs) 
+{
+    const float D = 0.5f;
+    std::vector<std::vector<float>> vertices(8, std::vector<float>(3, 0.f));
+    
+    std::vector<std::vector<float>> uv_coords = { {0.f, 0.f}, {0.f, 1.f}, {1.f, 1.f}, {1.f, 0.f} };
+
+    for (int i = 0; i < 8; ++i)
+    {
+        auto& vtx = vertices[i];
+        int g = grayNum(i);
+        for (int j = 0; j < 3; ++j)
+        {
+            int coord_bit = (g & (1 << j)) != 0;
+            int sign = (coord_bit * 2 - 1);
+            vtx[j] = sign * D;
+        }
+    }
+
+    //std::vector<std::vector<int>> indices(24, std::vector<int>(3));
+    std::vector<float> mesh;
+    std::vector<float> uvs;
+
+    int uv_ids[] = { 0, 1, 2, 0, 2, 3 };
+    std::vector<float> quad_uv;
+    for (const auto& i : uv_ids)
+        quad_uv.insert(quad_uv.end(), uv_coords[i].begin(), uv_coords[i].end());
+
+    auto gen_tris = [&mesh, &vertices](int vtx_ids[4]) 
+        {
+            int triangles[] = { vtx_ids[0], vtx_ids[1], vtx_ids[2], vtx_ids[0], vtx_ids[2], vtx_ids[3] };
+            for (const auto& v : triangles)
+                mesh.insert(mesh.end(), vertices[v].begin(), vertices[v].end());
+        };
+
+    for (int i = 0; i < 4; ++i)
+    {
+        int id = i * 2;
+        int ids[] = { id, (id + 1) % 8, (id + 2) % 8, (id + 3) % 8 };
+        gen_tris(ids);
+        //int triangles[] = { ids[0], ids[1], ids[2], ids[0], ids[2], ids[3] };
+        //for (const auto& v : triangles)
+        //    mesh.insert(mesh.end(), vertices[v].begin(), vertices[v].end());
+        uvs.insert(uvs.end(), quad_uv.begin(), quad_uv.end());
+    }
+
+    int front_ids[] = { 6, 1, 2, 5 };
+    int back_ids[] = { 3, 4, 7, 0 };
+
+    gen_tris(front_ids);
+    gen_tris(back_ids);
+    uvs.insert(uvs.end(), quad_uv.begin(), quad_uv.end());
+    uvs.insert(uvs.end(), quad_uv.begin(), quad_uv.end());
+
+    _mesh = mesh;
+    _uvs = uvs;
+}
+
 const std::string SHADERS_ROOT = "..\\Shaders";
 const std::string TEXTURES_ROOT = "..\\Textures";
 
@@ -147,6 +210,16 @@ int main() {
     //
     BaseMesh mesh(quadVtx, { GL_FLOAT, GL_FLOAT, GL_FLOAT }, { 3, 3, 2 }, quadIdx);
 
+    std::vector<float> cubeMesh;
+    std::vector<float> cubeUV;
+    generateCube(cubeMesh, cubeUV);
+    BaseMesh cubeModel(cubeMesh, { GL_FLOAT }, { 3 });
+    std::vector<float> cubeColors(cubeMesh.size(), 1.0f);
+    cubeModel.AttachData(cubeColors, { GL_FLOAT }, { 3 });
+    cubeModel.AttachData(cubeUV, { GL_FLOAT }, { 2 });
+    //BaseMesh 
+
+
     unsigned int VAO;
     glGenVertexArrays(1, &VAO);
     
@@ -213,6 +286,7 @@ int main() {
 
     //glBindVertexArray(VAO);
     glBindVertexArray(mesh.GetVAO());
+    //glBindVertexArray(cubeModel.GetVAO());
     //glBindTexture(GL_TEXTURE_2D, texture1);
 
     glActiveTexture(GL_TEXTURE0);
@@ -252,6 +326,8 @@ int main() {
 
     unsigned int transformLoc = glGetUniformLocation(transformShaderProgram.getID(), "transform");
     glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
+
+    glEnable(GL_DEPTH_TEST);
     
     float prevTime = glfwGetTime();
     while (!glfwWindowShouldClose(window))
@@ -259,7 +335,8 @@ int main() {
         processInput(window);
 
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
+        //glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
         float timeValue = glfwGetTime();
         float greenValue = sin(timeValue) / 2.0f + 0.5f;
@@ -295,15 +372,19 @@ int main() {
         }
         {
             // relative position
-            model = glm::translate(model, glm::vec3(0.0f, 0.0005f*cos(2 * deltaTime), -0.0005f*sin(2 * deltaTime)));
+            //model = glm::translate(model, glm::vec3(0.0f, 0.0005f*cos(2 * deltaTime), -0.0005f*sin(2 * deltaTime)));
             model = glm::rotate(model, -2 * deltaTime, glm::vec3(1.0f, 0.0f, 0.0f));
         }
+
+        model = glm::rotate(model, -2 * deltaTime, glm::vec3(0.0f, 1.0f, 0.0f));
         
         trans = projection * view * model;
         glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
 
         //glDrawArrays(GL_TRIANGLES, 0, 3);
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        //glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        //mesh.Draw();
+        cubeModel.Draw();
 
         glfwSwapBuffers(window);
         glfwPollEvents();
