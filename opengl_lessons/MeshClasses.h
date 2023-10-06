@@ -37,7 +37,7 @@ public:
         {
             // TODO: check if datatypes are correct enum values
             glVertexAttribPointer(lastAttribId, layout[i], datatypes[i], GL_FALSE, stride * sizeof(T), (void*)(offset * sizeof(T)));
-            glEnableVertexAttribArray(i);
+            glEnableVertexAttribArray(lastAttribId);
             offset += layout[i];
             lastAttribId++;
         }
@@ -87,7 +87,7 @@ public:
         {
             // TODO: check if datatypes are correct enum values
             glVertexAttribPointer(lastAttribId, layout[i], datatypes[i], GL_FALSE, stride * sizeof(T), (void*)(offset * sizeof(T)));
-            glEnableVertexAttribArray(i);
+            glEnableVertexAttribArray(lastAttribId);
             offset += layout[i];
             lastAttribId++;
         }
@@ -102,7 +102,7 @@ public:
         if (EBO != 0)
         {
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-            glDrawElements(GL_TRIANGLES, trianglesNum, GL_UNSIGNED_INT, 0);
+            glDrawElements(GL_TRIANGLES, trianglesNum * 3, GL_UNSIGNED_INT, 0);
         }
         else
             glDrawArrays(GL_TRIANGLES, 0, trianglesNum);
